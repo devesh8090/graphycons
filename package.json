@@ -1,5 +1,5 @@
 {
-  "name": "graph-avatar",
+  "name": "graphycons",
   "version": "1.0.0",
   "description": "Deterministic SVG avatars via recursive planar graph subdivision — hue, variance, density, and border width produce unique colored geometry",
   "main": "dist/index.js",

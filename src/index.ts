@@ -1,5 +1,5 @@
 /**
- * @module graph-avatar
+ * @module graphycons
  *
  * Generates deterministic SVG avatars via recursive planar graph subdivision.
  * Each avatar is uniquely determined by four normalised parameters: hue,
@@ -7,7 +7,7 @@
  *
  * @example
  * ```ts
- * import { generateAvatar, getHue } from 'graph-avatar';
+ * import { generateAvatar, getHue } from 'graphycons';
  *
  * const svg = generateAvatar({
  *   h: getHue('red'),

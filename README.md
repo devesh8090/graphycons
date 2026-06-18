@@ -1,11 +1,11 @@
-# graph-avatar
+# graphycons
 
 **Deterministic SVG avatars via recursive planar graph subdivision.**
 
 Pass in four numbers in `[0, 1]` — get back a unique, reproducible geometric avatar. Same inputs always produce byte-for-byte identical SVG output. Zero dependencies.
 
 ```bash
-npm install graph-avatar
+npm install graphycons
 ```
 
 ---
@@ -60,7 +60,7 @@ npm install graph-avatar
 ## Quick Start
 
 ```typescript
-import { generateAvatar, getHue } from 'graph-avatar';
+import { generateAvatar, getHue } from 'graphycons';
 
 const svg = generateAvatar({
   h: getHue('blue'),
@@ -125,7 +125,7 @@ Controls the black border stroke on each tile from `0` (invisible) to `4px` on t
 | lime | ≈ 0.236 | 85° |
 
 ```typescript
-import { HUE_PRESETS, getHue } from 'graph-avatar';
+import { HUE_PRESETS, getHue } from 'graphycons';
 
 HUE_PRESETS.red;   // 0.0277...
 HUE_PRESETS.blue;  // 0.6111...
@@ -181,7 +181,7 @@ Read-only object mapping preset names to `h` values.
 ### React
 
 ```jsx
-import { generateAvatar } from 'graph-avatar';
+import { generateAvatar } from 'graphycons';
 
 function Avatar({ h, v, d, w, size = 64 }) {
   const svg = generateAvatar({ h, v, d, w });
@@ -196,7 +196,7 @@ function Avatar({ h, v, d, w, size = 64 }) {
 <template><div v-html="avatar" /></template>
 <script setup>
 import { computed } from 'vue';
-import { generateAvatar } from 'graph-avatar';
+import { generateAvatar } from 'graphycons';
 const props = defineProps(['h','v','d','w']);
 const avatar = computed(() => generateAvatar(props));
 </script>
@@ -206,7 +206,7 @@ const avatar = computed(() => generateAvatar(props));
 
 ```javascript
 import fs from 'fs';
-import { generateAvatar, getHue } from 'graph-avatar';
+import { generateAvatar, getHue } from 'graphycons';
 
 fs.writeFileSync('avatar.svg', generateAvatar({
   h: getHue('lime'), v: 0.6, d: 0.9, w: 0.4,
@@ -252,8 +252,8 @@ After `k` subdivision steps (including the initial square split):
 ## Building from Source
 
 ```bash
-git clone https://github.com/your-org/graph-avatar
-cd graph-avatar
+git clone https://github.com/your-org/graphycons
+cd graphycons
 npm install
 npm run build
 ```
