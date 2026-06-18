@@ -253,7 +253,7 @@ After `k` subdivision steps (including the initial square split):
 ## Building from Source
 
 ```bash
-git clone https://github.com/your-org/graphycons
+git clone https://github.com/devesh8090/graphycons
 cd graphycons
 npm install
 npm run build
