@@ -1,5 +1,4 @@
 [![npm version](https://img.shields.io/npm/v/graphycons)](https://www.npmjs.com/package/graphycons)
-[![License: MIT](https://img.shields.io/npm/l/graphycons)](LICENSE)
 # graphycons
 
 **Deterministic SVG avatars via recursive planar graph subdivision.**
