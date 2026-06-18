@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>graph-avatar — Deterministic SVG Avatars</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080811;
+      --surface:   #0f0f1c;
+      --card:      #14142a;
+      --border:    rgba(255,255,255,0.07);
+      --border2:   rgba(255,255,255,0.14);
+      --text:      #ddddf2;
+      --text2:     #8888b0;
+      --text3:     #55556a;
+      --radius:    14px;
+      --gap:       20px;
+      --accent:    hsl(10, 65%, 60%);
+      --glow:      hsl(10, 50%, 18%);
+      --glow2:     hsl(10, 30%, 10%);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────── */
+    .app {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    .header {
+      margin-bottom: 48px;
+    }
+    .header h1 {
+      font-family: 'Courier New', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .header h1 .version {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text3);
+      padding: 2px 8px;
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      font-family: system-ui, sans-serif;
+    }
+    .header p {
+      margin-top: 8px;
+      color: var(--text2);
+      font-size: 15px;
+      max-width: 520px;
+    }
+    .header .badges {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+    }
+
+    /* ── Main two-column ─────────────────────────────────────────────── */
+    .main {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 700px) {
+      .main { grid-template-columns: 1fr; }
+    }
+
+    /* ── Avatar panel ────────────────────────────────────────────────── */
+    .avatar-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .avatar-wrap {
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 0 60px var(--glow),
+        0 0 120px var(--glow2);
+      transition: box-shadow 0.4s ease;
+      width: 340px;
+      height: 340px;
+      display: flex;
+    }
+    .avatar-wrap svg {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    .avatar-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+    }
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .color-swatch {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .avatar-actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+    .btn {
+      flex: 1;
+      padding: 9px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: var(--card);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      font-family: system-ui, sans-serif;
+    }
+    .btn:hover { border-color: var(--accent); background: rgba(255,255,255,0.04); }
+    .btn.primary {
+      background: var(--accent);
+      border-color: transparent;
+      color: #fff;
+      font-weight: 600;
+    }
+    .btn.primary:hover { filter: brightness(1.1); }
+    .btn.copied { border-color: hsl(140, 60%, 45%); color: hsl(140, 60%, 60%); }
+
+    /* ── Controls panel ──────────────────────────────────────────────── */
+    .controls-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 14px;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Preset buttons */
+    .presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .preset-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--text2);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: system-ui, sans-serif;
+    }
+    .preset-btn::before {
+      content: '';
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--preset-color, #888);
+      flex-shrink: 0;
+    }
+    .preset-btn[data-preset="red"]  { --preset-color: hsl(10,65%,54%); }
+    .preset-btn[data-preset="blue"] { --preset-color: hsl(220,65%,54%); }
+    .preset-btn[data-preset="lime"] { --preset-color: hsl(85,65%,48%); }
+    .preset-btn:hover { border-color: var(--border2); color: var(--text); background: rgba(255,255,255,0.04); }
+    .preset-btn.active { border-color: var(--preset-color); color: var(--text); }
+
+    /* Sliders */
+    .sliders { display: flex; flex-direction: column; gap: 16px; }
+    .slider-row { display: flex; flex-direction: column; gap: 6px; }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .slider-label {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .slider-label strong { color: var(--text); font-weight: 600; margin-right: 6px; }
+    .slider-value {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      min-width: 40px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+      transition: transform 0.1s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    input[type="range"]::-moz-range-thumb {
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+    }
+
+    /* ── Gallery ─────────────────────────────────────────────────────── */
+    .gallery-section { margin-top: 48px; }
+    .gallery-section h2 {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 6px;
+    }
+    .gallery-subtitle {
+      color: var(--text2);
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .gallery-col-headers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+    .gallery-col-header {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text2);
+      font-family: 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .gallery-col-header::before {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--col-color, #888);
+    }
+    .gallery-group { display: flex; flex-direction: column; gap: 12px; }
+    .gallery-item {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s;
+      position: relative;
+    }
+    .gallery-item:hover {
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+    .gallery-item svg { width: 100% !important; height: auto !important; display: block; }
+    .gallery-label {
+      padding: 6px 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      background: var(--card);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Row labels ───────────────────────────────────────────────────── */
+    .gallery-outer {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 0 12px;
+      align-items: center;
+    }
+    .row-labels {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .row-label {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    /* ── Info bar ─────────────────────────────────────────────────────── */
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .info-chip {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
+
+    /* ── Toast ────────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1e1e3a;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 13px;
+      color: var(--text);
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <h1>graph-avatar <span class="version">v1.0.0</span></h1>
+    <p>Deterministic SVG avatars via recursive planar graph subdivision.<br>
+       Each avatar encodes four parameters — hue, variance, density, border width — as coloured geometry.</p>
+    <div class="badges">
+      <span class="badge">zero dependencies</span>
+      <span class="badge">TypeScript</span>
+      <span class="badge">ESM + CJS</span>
+      <span class="badge">MIT License</span>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Left: Avatar -->
+    <div class="avatar-panel">
+      <div class="avatar-wrap" id="avatar-wrap">
+        <div id="avatar-display"></div>
+      </div>
+
+      <div class="avatar-meta">
+        <div class="meta-row">
+          <span class="color-swatch" id="color-swatch"></span>
+          <span id="hsl-display" style="font-size:12px"></span>
+        </div>
+        <div class="meta-row">
+          <span id="tile-info"></span>
+        </div>
+      </div>
+
+      <div class="info-bar" id="info-bar"></div>
+
+      <div class="avatar-actions">
+        <button class="btn" id="btn-copy">Copy SVG</button>
+        <button class="btn" id="btn-download">Download SVG</button>
+      </div>
+    </div>
+
+    <!-- Right: Controls -->
+    <div class="controls-panel">
+
+      <div class="card">
+        <div class="card-title">Hue Presets</div>
+        <div class="presets">
+          <button class="preset-btn active" data-preset="red">Red</button>
+          <button class="preset-btn" data-preset="blue">Blue</button>
+          <button class="preset-btn" data-preset="lime">Lime</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Parameters</div>
+        <div class="sliders">
+
+          <div class="slider-row">
+            <div class="slider-header">
+              <span class="slider-label"><strong>h</strong> hue — base color</span>
+              <span class="slider-value" id="val-h">0.028</span>
+            </div>
+            <input type="range" id="slider-h" min="0" max="1" step="0.001" value="0.028">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-header">
+              <span class="slider-label"><strong>v</strong> variance — lightness spread</span>
+              <span class="slider-value" id="val-v">0.400</span>
+            </div>
+            <input type="range" id="slider-v" min="0" max="1" step="0.001" value="0.4">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-header">
+              <span class="slider-label"><strong>d</strong> density — subdivision steps</span>
+              <span class="slider-value" id="val-d">0.600</span>
+            </div>
+            <input type="range" id="slider-d" min="0" max="1" step="0.001" value="0.6">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-header">
+              <span class="slider-label"><strong>w</strong> width — border thickness</span>
+              <span class="slider-value" id="val-w">0.300</span>
+            </div>
+            <input type="range" id="slider-w" min="0" max="1" step="0.001" value="0.3">
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card" style="font-size:13px; color:var(--text2); line-height:1.7">
+        <div class="card-title">Usage</div>
+        <code style="font-family:'Courier New',monospace; font-size:12px; color:var(--text); display:block; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; white-space:pre" id="code-block"></code>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Gallery -->
+  <section class="gallery-section">
+    <h2>Hue × Density Matrix</h2>
+    <p class="gallery-subtitle">v = 0.50, w = 0.20 held constant · click any avatar to load its parameters</p>
+
+    <div class="gallery-col-headers">
+      <div class="gallery-col-header" style="--col-color:hsl(10,65%,54%)">Red</div>
+      <div class="gallery-col-header" style="--col-color:hsl(220,65%,54%)">Blue</div>
+      <div class="gallery-col-header" style="--col-color:hsl(85,65%,48%)">Lime</div>
+    </div>
+
+    <div class="gallery-outer">
+      <div class="row-labels" id="row-labels"></div>
+      <div class="gallery-grid" id="gallery"></div>
+    </div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  GRAPH-AVATAR — complete inline implementation
+// ============================================================
+
+// ── PRNG (Mulberry32) ─────────────────────────────────────────
+function createPRNG(seed) {
+  let s = seed >>> 0;
+  return function() {
+    s += 0x6d2b79f5;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) >>> 0;
+    return ((t ^ (t >>> 14)) >>> 0) / 0x100000000;
+  };
+}
+
+// ── Seed generation (cyrb53 → uint32) ────────────────────────
+function generateSeed(h, v, d, w) {
+  const str = [h,v,d,w].map(n => n.toFixed(6)).join(',');
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+  h2 = Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return (h2>>>0)^(h1>>>0);
+}
+
+// ── Color helpers ─────────────────────────────────────────────
+const BASE_SAT  = 65;
+const BASE_L    = 52;
+
+function clamp(x, lo, hi) { return x < lo ? lo : x > hi ? hi : x; }
+function hslStr(h, s, l)  { return `hsl(${h.toFixed(1)},${s.toFixed(0)}%,${l.toFixed(1)}%)`; }
+function perturbL(base, v, rng) {
+  const range = 3 + v * 27;
+  return clamp(base + (rng()*2-1)*range, 25, 82);
+}
+
+// ── Geometry ──────────────────────────────────────────────────
+function polyArea(verts) {
+  let a = 0; const n = verts.length;
+  for (let i=0; i<n; i++) {
+    const j=(i+1)%n;
+    a += verts[i].x*verts[j].y - verts[j].x*verts[i].y;
+  }
+  return Math.abs(a)/2;
+}
+
+function subdivideTile(tile, rng, v) {
+  const verts = tile.vertices, n = verts.length;
+  let cx=0, cy=0;
+  for (const p of verts) { cx+=p.x; cy+=p.y; }
+  cx/=n; cy/=n;
+
+  const maxJ = Math.sqrt(polyArea(verts)) * 0.1;
+  const ang  = rng() * Math.PI * 2;
+  const dist = rng() * maxJ;
+  const ctr  = { x: cx + Math.cos(ang)*dist, y: cy + Math.sin(ang)*dist };
+
+  return Array.from({length:n}, (_,i) => ({
+    vertices: [verts[i], verts[(i+1)%n], ctr],
+    hue:        tile.hue,
+    saturation: tile.saturation,
+    lightness:  perturbL(tile.lightness, v, rng),
+  }));
+}
+
+function buildTiles(h, v, d, rng) {
+  const steps   = Math.round(d*20);
+  const baseHue = h*360;
+  const root = {
+    vertices: [{x:0,y:0},{x:400,y:0},{x:400,y:400},{x:0,y:400}],
+    hue: baseHue, saturation: BASE_SAT, lightness: BASE_L,
+  };
+
+  let tiles = subdivideTile(root, rng, v);
+  for (let s=0; s<steps; s++) {
+    let maxA=-1, maxI=0;
+    for (let i=0;i<tiles.length;i++){
+      const a=polyArea(tiles[i].vertices);
+      if(a>maxA){maxA=a;maxI=i;}
+    }
+    const ch = subdivideTile(tiles[maxI], rng, v);
+    tiles = [...tiles.slice(0,maxI), ...ch, ...tiles.slice(maxI+1)];
+  }
+  return tiles;
+}
+
+// ── SVG Renderer ──────────────────────────────────────────────
+function renderPolygon(tile, sw) {
+  const pts  = tile.vertices.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const fill = hslStr(tile.hue, tile.saturation, tile.lightness);
+  if (sw <= 0.01) return `<polygon points="${pts}" fill="${fill}"/>`;
+  return `<polygon points="${pts}" fill="${fill}" stroke="#000" stroke-width="${sw.toFixed(2)}" stroke-linejoin="round"/>`;
+}
+
+function generateAvatar(h, v, d, w, size=400) {
+  const seed = generateSeed(h, v, d, w);
+  const rng  = createPRNG(seed);
+  const tiles = buildTiles(h, v, d, rng);
+  const sw   = w * 4;
+  const polys = tiles.map(t=>`  ${renderPolygon(t,sw)}`).join('\n');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="${size}" height="${size}" role="img" aria-label="Graph avatar">\n${polys}\n</svg>`;
+}
+
+// ── Presets ───────────────────────────────────────────────────
+const HUE_PRESETS = {
+  red:  { h: 10/360,  hue: 10,  label: 'Red'  },
+  blue: { h: 220/360, hue: 220, label: 'Blue'  },
+  lime: { h: 85/360,  hue: 85,  label: 'Lime'  },
+};
+
+// ============================================================
+//  Demo state & UI
+// ============================================================
+let state = { h: 10/360, v: 0.4, d: 0.6, w: 0.3 };
+let currentSVG = '';
+
+// Attempt to restore from URL hash
+(function loadFromHash() {
+  const hash = window.location.hash.slice(1);
+  if (!hash) return;
+  try {
+    const p = new URLSearchParams(hash);
+    if (p.has('h')) state.h = parseFloat(p.get('h'));
+    if (p.has('v')) state.v = parseFloat(p.get('v'));
+    if (p.has('d')) state.d = parseFloat(p.get('d'));
+    if (p.has('w')) state.w = parseFloat(p.get('w'));
+  } catch(e) {}
+})();
+
+function update() {
+  const {h, v, d, w} = state;
+  const hue   = h * 360;
+  const steps = Math.round(d * 20);
+  const tiles = 4 + 3 * steps;
+  const nodes = 5 + steps;
+
+  // Regenerate avatar
+  currentSVG = generateAvatar(h, v, d, w, 400);
+  document.getElementById('avatar-display').innerHTML = currentSVG;
+
+  // Glow
+  document.documentElement.style.setProperty('--glow',  `hsl(${hue.toFixed(0)},50%,18%)`);
+  document.documentElement.style.setProperty('--glow2', `hsl(${hue.toFixed(0)},30%,10%)`);
+  document.documentElement.style.setProperty('--accent',`hsl(${hue.toFixed(0)},65%,60%)`);
+
+  // Meta
+  document.getElementById('color-swatch').style.background = hslStr(hue, BASE_SAT, BASE_L);
+  document.getElementById('hsl-display').textContent = `hsl(${hue.toFixed(1)}°, ${BASE_SAT}%, ${BASE_L}%)`;
+  document.getElementById('tile-info').textContent   = `${tiles} tiles · ${nodes} nodes · ${steps} subdivision steps`;
+
+  // Info chips
+  document.getElementById('info-bar').innerHTML = [
+    `seed: ${generateSeed(h,v,d,w).toString(16).padStart(8,'0')}`,
+    `size: &lt; ${(currentSVG.length/1024).toFixed(1)} KB`,
+  ].map(s=>`<span class="info-chip">${s}</span>`).join('');
+
+  // Value labels
+  document.getElementById('val-h').textContent = h.toFixed(3);
+  document.getElementById('val-v').textContent = v.toFixed(3);
+  document.getElementById('val-d').textContent = d.toFixed(3);
+  document.getElementById('val-w').textContent = w.toFixed(3);
+
+  // Slider positions
+  document.getElementById('slider-h').value = h;
+  document.getElementById('slider-v').value = v;
+  document.getElementById('slider-d').value = d;
+  document.getElementById('slider-w').value = w;
+
+  // Code block
+  document.getElementById('code-block').textContent =
+    `generateAvatar({\n  h: ${h.toFixed(3)},  // hue\n  v: ${v.toFixed(3)},  // variance\n  d: ${d.toFixed(3)},  // density\n  w: ${w.toFixed(3)},  // width\n});`;
+
+  // Preset buttons
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    const p = HUE_PRESETS[btn.dataset.preset];
+    btn.classList.toggle('active', Math.abs(p.h - h) < 0.001);
+  });
+
+  // URL hash
+  window.history.replaceState(null,'',
+    `#h=${h.toFixed(3)}&v=${v.toFixed(3)}&d=${d.toFixed(3)}&w=${w.toFixed(3)}`);
+}
+
+// ── Wire up sliders ───────────────────────────────────────────
+['h','v','d','w'].forEach(key => {
+  document.getElementById(`slider-${key}`).addEventListener('input', e => {
+    state[key] = parseFloat(e.target.value);
+    update();
+  });
+});
+
+// ── Preset buttons ────────────────────────────────────────────
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.h = HUE_PRESETS[btn.dataset.preset].h;
+    update();
+  });
+});
+
+// ── Copy SVG ──────────────────────────────────────────────────
+document.getElementById('btn-copy').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(currentSVG);
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy SVG'; btn.classList.remove('copied'); }, 2000);
+  } catch(e) { showToast('Copy failed — try a different browser'); }
+});
+
+// ── Download SVG ──────────────────────────────────────────────
+document.getElementById('btn-download').addEventListener('click', () => {
+  const {h,v,d,w} = state;
+  const a = document.createElement('a');
+  a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(currentSVG);
+  a.download = `avatar-h${h.toFixed(3)}-v${v.toFixed(3)}-d${d.toFixed(3)}-w${w.toFixed(3)}.svg`;
+  a.click();
+  showToast('SVG downloaded');
+});
+
+// ── Toast helper ──────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Gallery ───────────────────────────────────────────────────
+(function buildGallery() {
+  const DENSITIES  = [0.15, 0.5, 0.9];
+  const FIELDS     = ['red', 'blue', 'lime'];
+  const GALLERY_V  = 0.5;
+  const GALLERY_W  = 0.2;
+
+  const rowLabels  = document.getElementById('row-labels');
+  const grid       = document.getElementById('gallery');
+
+  // Row labels
+  DENSITIES.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'row-label';
+    el.textContent = `d=${d}`;
+    rowLabels.appendChild(el);
+  });
+
+  // Per-field column (each field gets a flex column)
+  FIELDS.forEach(field => {
+    const col = document.createElement('div');
+    col.className = 'gallery-group';
+
+    DENSITIES.forEach(d => {
+      const h = HUE_PRESETS[field].h;
+      const svg = generateAvatar(h, GALLERY_V, d, GALLERY_W, 160);
+
+      const item = document.createElement('div');
+      item.className = 'gallery-item';
+      item.innerHTML = svg + `<div class="gallery-label">d=${d} v=${GALLERY_V} w=${GALLERY_W}</div>`;
+
+      item.addEventListener('click', () => {
+        state = { h, v: GALLERY_V, d, w: GALLERY_W };
+        update();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      col.appendChild(item);
+    });
+
+    grid.appendChild(col);
+  });
+})();
+
+// ── Initial render ────────────────────────────────────────────
+update();
+</script>
+</body>
+</html>

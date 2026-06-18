@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="200" height="200" role="img">
+  <polygon points="0.0,0.0 400.0,0.0 203.0,60.6" fill="hsl(220.0,65%,59.8%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="400.0,0.0 179.6,196.0 203.0,60.6" fill="hsl(220.0,65%,46.2%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="179.6,196.0 0.0,0.0 130.4,90.4" fill="hsl(220.0,65%,25.0%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="0.0,0.0 203.0,60.6 130.4,90.4" fill="hsl(220.0,65%,53.6%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="203.0,60.6 179.6,196.0 130.4,90.4" fill="hsl(220.0,65%,46.8%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="400.0,0.0 400.0,400.0 374.8,200.0" fill="hsl(220.0,65%,50.7%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="400.0,400.0 323.2,200.3 374.8,200.0" fill="hsl(220.0,65%,42.2%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="323.2,200.3 400.0,0.0 374.8,200.0" fill="hsl(220.0,65%,59.0%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="400.0,400.0 179.6,196.0 301.6,263.6" fill="hsl(220.0,65%,82.0%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="179.6,196.0 323.2,200.3 301.6,263.6" fill="hsl(220.0,65%,53.9%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="323.2,200.3 400.0,400.0 301.6,263.6" fill="hsl(220.0,65%,65.6%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="179.6,196.0 400.0,0.0 300.9,132.1" fill="hsl(220.0,65%,82.0%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="400.0,0.0 323.2,200.3 300.9,132.1" fill="hsl(220.0,65%,68.2%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="323.2,200.3 179.6,196.0 300.9,132.1" fill="hsl(220.0,65%,82.0%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="400.0,400.0 0.0,400.0 198.1,338.5" fill="hsl(220.0,65%,66.3%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="0.0,400.0 179.6,196.0 132.0,309.0" fill="hsl(220.0,65%,81.3%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="179.6,196.0 198.1,338.5 132.0,309.0" fill="hsl(220.0,65%,82.0%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="198.1,338.5 0.0,400.0 132.0,309.0" fill="hsl(220.0,65%,68.4%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="179.6,196.0 400.0,400.0 198.1,338.5" fill="hsl(220.0,65%,82.0%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="0.0,400.0 0.0,0.0 45.5,190.2" fill="hsl(220.0,65%,78.5%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="0.0,0.0 179.6,196.0 45.5,190.2" fill="hsl(220.0,65%,38.6%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="179.6,196.0 0.0,400.0 86.7,264.2" fill="hsl(220.0,65%,25.2%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="0.0,400.0 45.5,190.2 86.7,264.2" fill="hsl(220.0,65%,57.5%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+  <polygon points="45.5,190.2 179.6,196.0 86.7,264.2" fill="hsl(220.0,65%,30.8%)" stroke="#000" stroke-width="1.20" stroke-linejoin="round"/>
+</svg>
